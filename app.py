@@ -3,11 +3,13 @@ import os, json
 from flask import Flask, request, jsonify
 from flask_mysqldb import MySQL
 from dotenv import load_dotenv
-from BLAKE3 import create_token, verify_token
+from jwt_blake3 import create_token, verify_token
 from werkzeug.security import generate_password_hash, check_password_hash
+from middleware import middleware
 
 load_dotenv()
 app = Flask(__name__)
+app.wsgi_app = middleware(app.wsgi_app)
 
 app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST')
 app.config['MYSQL_USER'] = os.getenv('MYSQL_USER')
@@ -18,6 +20,7 @@ mysql = MySQL(app)
 
 @app.route('/')
 def main():
+    print(request.environ['user'])
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM users")
     rv = cur.fetchall()
@@ -70,6 +73,26 @@ def login():
     except Exception as err:
         print(err)
         return send_response(500, {'message': 'error when login!'})
+
+@app.route('/users/<username>', methods=['GET'])
+def get_specific_user(username):
+    try:
+        curr = mysql.connection.cursor()
+        curr.execute('SELECT username, name, email FROM users WHERE username = %s', (username,))
+        user = curr.fetchall()
+        curr.close()
+
+        if (user is None):
+            return send_response(200, {})
+        else:
+            return send_response(200, {
+                'username': user[0][0],
+                'name': user[0][1],
+                'email': user[0][2]
+            })
+    except Exception as err:
+        print(err)
+        return send_response(500, {'message': 'error when GET detail of a user'})
 
 def send_response(statuscode, data):
     resp = {"status": statuscode, "data": data}
