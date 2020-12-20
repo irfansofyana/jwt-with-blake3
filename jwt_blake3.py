@@ -1,5 +1,6 @@
 from blake3 import blake3, KEY_LEN
 import base64, json, string, random, traceback
+import time
 
 def base64_encode(message):
     return base64.b64encode(message.encode('ascii'))
@@ -49,14 +50,17 @@ if (__name__=="__main__"):
         "alg": "BLAKE3"
     }
     payload = {
-        "user_id": "id1",
-        "email": "user@gmail.com"
+        "username": "irfan",
+        "email": "irfan@gmail.com"
     }
 
     secret = '5J9YXGHNCDO6CI8SQJ8R1CFY3X00EWUV'
     true_token = create_token(json.dumps(payload), secret) 
+
+    START_TIME = time.time()
     print("True token: ", true_token)
     assert verify_token(true_token, secret) == True, print("Verify token is failed!")
+    print("%.10f" % (time.time() - START_TIME))
 
     false_token = 'akjdkasjdkasljdas.kldjaksdjaskldjaskldjaslkd.jakjdlaksjdaklsjdkasjdlaksjdl'
     assert verify_token(false_token, secret) != True, print("Verify token algorithm is not correct!")
