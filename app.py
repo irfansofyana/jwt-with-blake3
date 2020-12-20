@@ -27,7 +27,7 @@ def main():
     return str(rv)
 
 @app.route('/register', methods=['POST'])
-def signup():
+def register():
     username = request.json['username']
     password = request.json['password']
     name = request.json['name']
