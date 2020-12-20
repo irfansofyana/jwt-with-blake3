@@ -18,14 +18,6 @@ app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 
 mysql = MySQL(app)
 
-@app.route('/')
-def main():
-    print(request.environ['user'])
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM users")
-    rv = cur.fetchall()
-    return str(rv)
-
 @app.route('/register', methods=['POST'])
 def register():
     username = request.json['username']
