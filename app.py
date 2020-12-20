@@ -74,8 +74,8 @@ def get_specific_user(username):
         user = curr.fetchall()
         curr.close()
 
-        if (user is None):
-            return send_response(200, {})
+        if (user is None or len(user) == 0):
+            return send_response(404, {'message': 'user not found!'})
         else:
             return send_response(200, {
                 'username': user[0][0],
