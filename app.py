@@ -36,17 +36,38 @@ def signup():
 
     try:
         curr = mysql.connection.cursor()
-        curr.execute("INSERT INTO users VALUES(%s, %s, %s, %s)", (username, generate_password_hash(password), name, email))
+        curr.execute(
+            "INSERT INTO users VALUES(%s, %s, %s, %s)", 
+            (username, generate_password_hash(password), name, email)
+        )
         mysql.connection.commit()
         curr.close()
 
         return send_response(200, {'message': 'user created!'})
-    except:
+    except Exception as err:
+        print(err)
         return send_response(500, {'message': 'error when creating user!'})
 
 @app.route('/login', methods=['POST'])
-def signin():
-    return request.json
+def login():
+    username = request.json['username']
+    password = request.json['password']
+
+    try:
+        user = find_user(username)
+
+        if (user is None or len(user) == 0):
+            return send_response(404, {'message': 'user not found!'})
+    
+        hashed_password = user[0][1]
+
+        if not(check_password_hash(hashed_password, password)):
+            return send_response(401, {'message': 'username or password is incorrect!'})
+
+        return send_response(200, {'user': user})
+    except Exception as err:
+        print(err)
+        return send_response(500, {'message': 'error when login!'})
 
 def send_response(statuscode, data):
     resp = {"status": statuscode, "data": data}
@@ -60,8 +81,9 @@ def find_user(username):
         curr.close()
 
         return user
-    except Exception as e:
-        print(e)
+    except Exception as err:
+        print(err)
+        return send_response(500, {'message': 'error when find user by username!'})
 
 if (__name__=="__main__"):
     app.run(debug=True)
