@@ -64,7 +64,9 @@ def login():
         if not(check_password_hash(hashed_password, password)):
             return send_response(401, {'message': 'username or password is incorrect!'})
 
-        return send_response(200, {'user': user})
+        data = json.dumps({'username': user[0][0]})
+        jwt_token = create_token(payload=data, secret=os.getenv('SECRET_KEY'))
+        return send_response(200, {'jwt_token': jwt_token})
     except Exception as err:
         print(err)
         return send_response(500, {'message': 'error when login!'})

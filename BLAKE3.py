@@ -10,7 +10,7 @@ def base64_decode(message):
 def random_32_string():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k = 32))
 
-def create_token(header, payload, secret):
+def create_token(payload, secret, header = json.dumps({"typ": "JWT","alg": "BLAKE3"})):
     header_encoded = base64_encode(header)
     payload_encoded = base64_encode(payload)
     signing = blake3(header_encoded + b"." + payload_encoded, key = secret.encode('ascii')).hexdigest()
