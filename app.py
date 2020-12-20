@@ -30,7 +30,8 @@ def signup():
     name = request.json['name']
     email = request.json['email']
 
-    if (is_user_exist(username)):
+    user = find_user(username)
+    if (user is not None and len(user) > 0):
         return send_response(400, {'message': 'username is already taken!'})
 
     try:
@@ -51,17 +52,14 @@ def send_response(statuscode, data):
     resp = {"status": statuscode, "data": data}
     return jsonify(resp), statuscode
 
-def is_user_exist(username):
+def find_user(username):
     try:
         curr = mysql.connection.cursor()
         curr.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = curr.fetchall()
         curr.close()
 
-        if (user is None):
-            return False
-        else:
-            return len(user) > 0
+        return user
     except Exception as e:
         print(e)
 
