@@ -94,6 +94,30 @@ def get_specific_user(username):
         print(err)
         return send_response(500, {'message': 'error when GET detail of a user'})
 
+@app.route('/users/<username>', methods=['PUT'])
+def update_specific_user(username):
+    try:
+        user = json.loads(request.environ['user'])
+        if (user['username'] != username):
+            return send_response(403, {'message': 'you are not allowed to modify other user!'})
+
+        new_name = request.json['name']
+        new_email = request.json['email']
+        new_password = request.json['email']
+
+        curr = mysql.connection.cursor()
+        curr.execute(
+            'UPDATE users SET name = %s, email = %s, password = %s WHERE username = %s', 
+            (new_name, new_email, generate_password_hash(new_password), username)
+        )
+        mysql.connection.commit()
+        curr.close()
+        
+        return send_response(200, {'message': 'user information is successfully updated!'})
+    except Exception as err:
+        print(err)
+        return send_response(500, {'message': 'error when update a user'})
+
 def send_response(statuscode, data):
     resp = {"status": statuscode, "data": data}
     return jsonify(resp), statuscode
