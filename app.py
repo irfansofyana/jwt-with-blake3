@@ -1,4 +1,5 @@
-import os, json
+import os
+import json
 
 from flask import Flask, request, jsonify
 from flask_mysqldb import MySQL
@@ -18,6 +19,7 @@ app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 
 mysql = MySQL(app)
 
+
 @app.route('/register', methods=['POST'])
 def register():
     username = request.json['username']
@@ -32,7 +34,7 @@ def register():
     try:
         curr = mysql.connection.cursor()
         curr.execute(
-            "INSERT INTO users VALUES(%s, %s, %s, %s)", 
+            "INSERT INTO users VALUES(%s, %s, %s, %s)",
             (username, generate_password_hash(password), name, email)
         )
         mysql.connection.commit()
@@ -42,6 +44,7 @@ def register():
     except Exception as err:
         print(err)
         return send_response(500, {'message': 'error when creating user!'})
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -53,7 +56,7 @@ def login():
 
         if (user is None or len(user) == 0):
             return send_response(404, {'message': 'user not found!'})
-    
+
         hashed_password = user[0][1]
 
         if not(check_password_hash(hashed_password, password)):
@@ -66,11 +69,13 @@ def login():
         print(err)
         return send_response(500, {'message': 'error when login!'})
 
+
 @app.route('/users/<username>', methods=['GET'])
 def get_specific_user(username):
     try:
         curr = mysql.connection.cursor()
-        curr.execute('SELECT username, name, email FROM users WHERE username = %s', (username,))
+        curr.execute(
+            'SELECT username, name, email FROM users WHERE username = %s', (username,))
         user = curr.fetchall()
         curr.close()
 
@@ -86,6 +91,7 @@ def get_specific_user(username):
         print(err)
         return send_response(500, {'message': 'error when GET detail of a user'})
 
+
 @app.route('/users/<username>', methods=['PUT'])
 def update_specific_user(username):
     try:
@@ -99,20 +105,22 @@ def update_specific_user(username):
 
         curr = mysql.connection.cursor()
         curr.execute(
-            'UPDATE users SET name = %s, email = %s, password = %s WHERE username = %s', 
+            'UPDATE users SET name = %s, email = %s, password = %s WHERE username = %s',
             (new_name, new_email, generate_password_hash(new_password), username)
         )
         mysql.connection.commit()
         curr.close()
-        
+
         return send_response(200, {'message': 'user information is successfully updated!'})
     except Exception as err:
         print(err)
         return send_response(500, {'message': 'error when update a user'})
 
+
 def send_response(statuscode, data):
     resp = {"status": statuscode, "data": data}
     return jsonify(resp), statuscode
+
 
 def find_user(username):
     try:
@@ -126,5 +134,6 @@ def find_user(username):
         print(err)
         return send_response(500, {'message': 'error when find user by username!'})
 
-if (__name__=="__main__"):
+
+if (__name__ == "__main__"):
     app.run(debug=True)
